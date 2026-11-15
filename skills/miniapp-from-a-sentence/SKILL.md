@@ -64,6 +64,20 @@ Give the user the steps in `references/deploy.md`. They create the bot in @BotFa
 environment themselves. Never ask for, store or paste a real bot token, and never create bots or
 accounts for the user.
 
+## Files, network and secrets (what this skill touches)
+
+- **Files:** `scripts/new-app.cjs` only creates the new `<folder>` you name and writes the template
+  files into it. It refuses to write into a folder that already has files. It deletes nothing and
+  runs no shell commands.
+- **Network:** the skill itself makes no network calls. The generated app's server, once the user
+  deploys it with their own token, calls one endpoint: `https://api.telegram.org/bot<BOT_TOKEN>/sendMessage`
+  (and `/setWebhook` if they set one up) to deliver orders to the admin chat. In dev mode
+  (`npm run dev`) it only listens on `http://localhost:3000` and prints admin messages to the
+  terminal instead of sending them.
+- **Secrets:** no token is stored anywhere in this skill. The server reads `BOT_TOKEN`,
+  `ADMIN_CHAT_ID` and `WEBHOOK_SECRET` from `process.env`. Dev mode signs test data with a random
+  key generated at startup, which is never valid for Telegram.
+
 ## Report back
 Tell the user: which template, what you changed, how you tested it (the flow you clicked and the
 admin message you saw), and the deploy steps. Say clearly that storage is in memory and needs a

@@ -12,7 +12,8 @@ const path = require('path');
 const crypto = require('crypto');
 const { validateInitData, buildInitData } = require('./initdata.cjs');
 
-const DEV_TOKEN = '000000:dev-token-for-local-testing-only';
+// Local dev only: a random signing key made at startup, so no secret is ever stored in the code.
+const DEV_TOKEN = `dev:${crypto.randomBytes(24).toString('hex')}`;
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon' };
 
 function config(env = process.env) {
