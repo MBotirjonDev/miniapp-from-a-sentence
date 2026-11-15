@@ -1,0 +1,16 @@
+{
+  "name": "miniapp-from-a-sentence",
+  "version": "0.1.0",
+  "description": "Agent skill that builds a working, secure Telegram Mini App (ordering, booking, survey) with a zero-dependency Node backend from one sentence.",
+  "license": "MIT",
+  "author": "Botirjon (https://github.com/MBotirjonDev)",
+  "repository": { "type": "git", "url": "https://github.com/MBotirjonDev/miniapp-from-a-sentence.git" },
+  "bin": { "miniapp-from-a-sentence": "skills/miniapp-from-a-sentence/scripts/new-app.cjs" },
+  "scripts": {
+    "test": "node --test tests/miniapp.test.cjs tests/new-app.test.cjs",
+    "walkthrough": "node scripts/walkthrough.cjs",
+    "package:skill": "node scripts/package-skill.cjs"
+  },
+  "engines": { "node": ">=18" },
+  "keywords": ["telegram", "telegram-mini-apps", "telegram-bot", "twa", "initdata", "agent-skills", "claude-code", "codex", "cursor", "zero-dependency"]
+}

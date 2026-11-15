@@ -1,0 +1,16 @@
+{
+  "shop": "Coffee Corner",
+  "tagline": "Order ahead, pick up at the counter",
+  "currency": "UZS",
+  "categories": [
+    { "id": "coffee", "name": "Coffee", "items": [
+      { "id": "espresso", "name": "Espresso", "description": "Double shot", "price": 18000 },
+      { "id": "cappuccino", "name": "Cappuccino", "description": "Espresso, steamed milk, foam", "price": 26000 },
+      { "id": "latte", "name": "Latte", "description": "Espresso and a lot of milk", "price": 28000 }
+    ]},
+    { "id": "food", "name": "Food", "items": [
+      { "id": "croissant", "name": "Croissant", "description": "Butter, baked this morning", "price": 15000 },
+      { "id": "cheesecake", "name": "Cheesecake", "description": "Slice, New York style", "price": 32000 }
+    ]}
+  ]
+}

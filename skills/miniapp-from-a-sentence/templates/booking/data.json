@@ -1,0 +1,16 @@
+{
+  "business": "Barber Studio",
+  "tagline": "Book a time in 30 seconds",
+  "currency": "UZS",
+  "utcOffsetMinutes": 300,
+  "daysAhead": 7,
+  "openHour": 10,
+  "closeHour": 19,
+  "slotMinutes": 60,
+  "closedWeekdays": [0],
+  "services": [
+    { "id": "haircut", "name": "Haircut", "minutes": 60, "price": 80000 },
+    { "id": "beard", "name": "Beard trim", "minutes": 60, "price": 50000 },
+    { "id": "combo", "name": "Haircut + beard", "minutes": 60, "price": 120000 }
+  ]
+}

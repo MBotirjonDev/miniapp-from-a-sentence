@@ -1,0 +1,11 @@
+{
+  "title": "Free consultation",
+  "intro": "Answer 4 quick questions and we will call you back today.",
+  "thanks": "Thank you! A manager will contact you soon.",
+  "questions": [
+    { "id": "goal", "type": "choice", "text": "What do you need?", "options": ["Website", "Mobile app", "Telegram bot", "Not sure yet"] },
+    { "id": "budget", "type": "choice", "text": "Your budget?", "options": ["Under $500", "$500 – $2,000", "Over $2,000"] },
+    { "id": "details", "type": "text", "text": "Tell us a little about the project", "optional": true, "max": 500 },
+    { "id": "phone", "type": "phone", "text": "Your phone number" }
+  ]
+}
