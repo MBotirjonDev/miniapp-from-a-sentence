@@ -3,6 +3,8 @@ const test = require('node:test');
 const assert = require('node:assert');
 const path = require('path');
 const crypto = require('crypto');
+const fs = require('fs');
+const os = require('os');
 
 const T = path.join(__dirname, '..', 'skills', 'miniapp-from-a-sentence', 'templates');
 const pay = require(path.join(T, '_lib', 'payments.cjs'));
@@ -50,7 +52,8 @@ async function start(extraEnv = {}) {
   Object.assign(process.env, {
     NODE_ENV: 'test', BOT_TOKEN: TOKEN, ADMIN_CHAT_ID: '', WEBHOOK_SECRET: 'x', WEBAPP_URL: 'https://shop.example',
     PAYME_MERCHANT_ID: 'merchant123', PAYME_KEY, PAYME_TEST: '1',
-    CLICK_SERVICE_ID: '36', CLICK_MERCHANT_ID: '46', CLICK_SECRET_KEY: CLICK_SECRET, ...extraEnv,
+    CLICK_SERVICE_ID: '36', CLICK_MERCHANT_ID: '46', CLICK_SECRET_KEY: CLICK_SECRET,
+    DATA_DIR: fs.mkdtempSync(path.join(os.tmpdir(), 'mafs-')), ...extraEnv,
   });
   const app = require(path.join(T, 'ordering', 'server.js'));
   process.env = saved;
@@ -141,7 +144,7 @@ test('payme: cancel before and after perform; expired transactions are cancelled
 
     const d = await s.order();
     await s.payme('CreateTransaction', { id: 'tx-d', time: Date.now(), amount: 5600000, account: { order_id: d.orderId } });
-    s.app._state.paymeTx.get('tx-d').createTime -= 13 * 3600 * 1000;
+    s.app._store.data.paymeTx['tx-d'].createTime -= 13 * 3600 * 1000;
     assert.strictEqual((await s.payme('PerformTransaction', { id: 'tx-d' })).error.code, -31008);
     assert.strictEqual((await s.payme('CheckTransaction', { id: 'tx-d' })).result.reason, 4);
   } finally { await s.stop(); }

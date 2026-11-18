@@ -52,6 +52,7 @@ Works with Claude Code, Codex, Cursor and any agent that reads `SKILL.md`.
 | Server rules | recomputes every price, max quantities | computes free slots, rejects a taken slot (409) | validates answers, one response per user |
 | Admin gets | order with items and total | booking with name and phone | all answers |
 | Payments | **Payme + Click built in** (optional) | | |
+| Owner tools | **bot commands + saved to disk** | | |
 
 <p align="center">
   <img src="docs/booking-2.png" width="24%" alt="Booking: choose a day and time">
@@ -91,6 +92,22 @@ CLICK_SERVICE_ID=...   CLICK_MERCHANT_ID=...  CLICK_SECRET_KEY=...
 
 Without keys the template works as before: orders are "pay on pickup".
 
+## Manage the shop from Telegram
+
+New in v0.3. No admin website to build or host: the owner runs the shop from the admin chat.
+
+```
+/items                         all items with ids and prices
+/price latte 30000             change a price
+/hide cheesecake  /show ...    take an item off the menu or put it back
+/add food | Honey Cake | 25000 | Layers of honey sponge
+/orders                        the last 10 orders and their payment status
+/done 12                       order handed over (no more online refunds)
+```
+
+Only the `ADMIN_CHAT_ID` chat can use them. Menu changes, orders and payments are saved to
+`DATA_DIR/store.json` with atomic writes, so a restart loses nothing.
+
 ## Security, built in
 
 Most Mini Apps break in the same places. Each template:
@@ -112,7 +129,7 @@ own checkout URL.
 
 ## How it was tested
 
-- **31 unit and API tests** (`npm test`), including Payme and Click flows (wrong key, bad signature, wrong amount, double payment, timeout, refunds), forged user ids, another bot's token, expired
+- **38 unit and API tests** (`npm test`), including Payme and Click flows (wrong key, bad signature, wrong amount, double payment, timeout, refunds), forged user ids, another bot's token, expired
   initData, client-side price tampering, double booking, duplicate survey answers, webhook without
   the secret, path traversal, and that the dev mock is off when a real token is set.
 - **A Playwright walkthrough** (`node scripts/walkthrough.cjs`) opens each template at phone width,
@@ -130,8 +147,9 @@ Details: [references/deploy.md](skills/miniapp-from-a-sentence/references/deploy
 
 ## Honest limits
 
-- **Storage is in memory.** Order numbers, bookings and survey answers reset on restart. Add a
-  database before real customers.
+- **Storage is a JSON file for ordering, memory for booking and survey.** The ordering template
+  saves to `store.json` (keep it on a persistent disk and back it up; one server process only).
+  Bookings and survey answers still reset on restart. Use a database as you grow.
 - **Payments need a registered business.** Payme and Click keys come from their merchant
   cabinets, which require an LLC or sole proprietor. The handlers are tested against the specs
   and Payme-style calls, not yet against a live merchant account.

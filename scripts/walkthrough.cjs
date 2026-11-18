@@ -5,6 +5,8 @@
 // Usage: node scripts/walkthrough.cjs [--no-shots]
 const path = require('path');
 const { chromium } = require('playwright');
+const fs = require('fs');
+const os = require('os');
 
 const T = path.join(__dirname, '..', 'skills', 'miniapp-from-a-sentence', 'templates');
 const DOCS = path.join(__dirname, '..', 'docs');
@@ -15,7 +17,7 @@ function load(name, env = {}) {
   delete process.env.BOT_TOKEN;
   process.env.NODE_ENV = 'development';
   for (const k of PAY_ENV) delete process.env[k];
-  Object.assign(process.env, env);
+  Object.assign(process.env, { DATA_DIR: fs.mkdtempSync(path.join(os.tmpdir(), 'mafs-wt-')) }, env);
   delete require.cache[require.resolve(path.join(T, name, 'server.js'))];
   const app = require(path.join(T, name, 'server.js'));
   return app;

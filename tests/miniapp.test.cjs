@@ -3,6 +3,8 @@ const test = require('node:test');
 const assert = require('node:assert');
 const path = require('path');
 const crypto = require('crypto');
+const fs = require('fs');
+const os = require('os');
 
 const T = path.join(__dirname, '..', 'skills', 'miniapp-from-a-sentence', 'templates');
 const { validateInitData, buildInitData, dataCheckString } = require(path.join(T, '_lib', 'initdata.cjs'));
@@ -58,7 +60,7 @@ test('initData: expired, future, missing and malformed data fail', () => {
 async function start(template, env = {}) {
   delete require.cache[require.resolve(path.join(T, template, 'server.js'))];
   const saved = { ...process.env };
-  Object.assign(process.env, { NODE_ENV: 'test', BOT_TOKEN: TOKEN, ADMIN_CHAT_ID: '', WEBHOOK_SECRET: 'hook-secret', ...env });
+  Object.assign(process.env, { NODE_ENV: 'test', BOT_TOKEN: TOKEN, ADMIN_CHAT_ID: '', WEBHOOK_SECRET: 'hook-secret', DATA_DIR: fs.mkdtempSync(path.join(os.tmpdir(), 'mafs-')), ...env });
   const app = require(path.join(T, template, 'server.js'));
   process.env = saved;
   const port = await app.listen(0);

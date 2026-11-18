@@ -30,6 +30,8 @@ function config(env = process.env) {
     webAppUrl: env.WEBAPP_URL || '',
     port: Number(env.PORT || 3000),
     maxAge: Number(env.INITDATA_MAX_AGE || 3600),
+    // Tests run with a real-looking token but must never call Telegram.
+    offline: env.NODE_ENV === 'test',
   };
 }
 
@@ -93,13 +95,14 @@ function escapeHtml(s) {
  *   do their own authentication. They get { headers, text, notifyAdmin, escapeHtml } and return the JSON to send.
  * @param {object} [opts.env]
  */
-function createApp({ publicDir, api, hooks = {}, env }) {
+function createApp({ publicDir, api, hooks = {}, onBotMessage, env }) {
   const cfg = config(env);
   const outbox = []; // messages sent (or that would be sent) to the admin, kept for tests and dev logs
+  const botOutbox = []; // other Bot API calls (replies to admin commands), kept for tests
 
   async function notifyAdmin(html) {
     outbox.push(html);
-    if (cfg.dev || !cfg.adminChatId) { console.log('[admin message]', html.replace(/<[^>]+>/g, '')); return; }
+    if (cfg.dev || cfg.offline || !cfg.adminChatId) { console.log('[admin message]', html.replace(/<[^>]+>/g, '')); return; }
     const r = await fetch(`https://api.telegram.org/bot${cfg.botToken}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -109,7 +112,8 @@ function createApp({ publicDir, api, hooks = {}, env }) {
   }
 
   async function botApi(method, payload) {
-    if (cfg.dev) { console.log('[bot api]', method, JSON.stringify(payload)); return; }
+    botOutbox.push({ method, payload });
+    if (cfg.dev || cfg.offline) { console.log('[bot api]', method, JSON.stringify(payload)); return; }
     await fetch(`https://api.telegram.org/bot${cfg.botToken}/${method}`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
     });
@@ -130,6 +134,13 @@ function createApp({ publicDir, api, hooks = {}, env }) {
     }
     const update = await readJson(req, 64 * 1024);
     const msg = update.message;
+    // Messages from the admin chat (and only that chat) go to the template, e.g. shop management commands.
+    const fromAdmin = msg && msg.chat && cfg.adminChatId && String(msg.chat.id) === String(cfg.adminChatId);
+    if (fromAdmin && typeof msg.text === 'string' && onBotMessage) {
+      const reply = await onBotMessage({ text: msg.text.trim(), msg, notifyAdmin, escapeHtml });
+      if (reply) await botApi('sendMessage', { chat_id: msg.chat.id, text: reply, parse_mode: 'HTML' });
+      return send(res, 200, { ok: true });
+    }
     if (msg && typeof msg.text === 'string' && msg.text.startsWith('/start') && cfg.webAppUrl) {
       await botApi('sendMessage', {
         chat_id: msg.chat.id,
@@ -192,7 +203,7 @@ function createApp({ publicDir, api, hooks = {}, env }) {
     }
   });
 
-  return { server, cfg, outbox, listen: (port = cfg.port) => new Promise((r) => server.listen(port, () => r(server.address().port))) };
+  return { server, cfg, outbox, botOutbox, notifyAdmin, listen: (port = cfg.port) => new Promise((r) => server.listen(port, () => r(server.address().port))) };
 }
 
 /** Throw a 400 with a message the client can show. */

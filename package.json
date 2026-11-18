@@ -1,6 +1,6 @@
 {
   "name": "miniapp-from-a-sentence",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Agent skill that builds a working, secure Telegram Mini App (ordering, booking, survey) with a zero-dependency Node backend from one sentence.",
   "license": "MIT",
   "author": "Botirjon (https://github.com/MBotirjonDev)",

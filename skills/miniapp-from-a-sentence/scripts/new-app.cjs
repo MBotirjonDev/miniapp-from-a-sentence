@@ -29,6 +29,7 @@ fs.writeFileSync(path.join(dest, '.env.example'), [
   'NODE_ENV=production',
   'PORT=3000',
   ...(template === 'ordering' ? [
+    'DATA_DIR=./data    # where store.json (catalog, orders, payments) is saved; back it up',
     '',
     '# Online payments (optional). Leave empty to take orders as "pay on pickup".',
     '# Payme Business cabinet -> cashbox. Endpoint URL to give Payme: <WEBAPP_URL>/payments/payme',
@@ -42,7 +43,7 @@ fs.writeFileSync(path.join(dest, '.env.example'), [
   ] : []),
   '',
 ].join('\n'));
-fs.writeFileSync(path.join(dest, '.gitignore'), '.env\nnode_modules/\n');
+fs.writeFileSync(path.join(dest, '.gitignore'), '.env\nnode_modules/\ndata/\n');
 fs.writeFileSync(path.join(dest, 'package.json'), JSON.stringify({
   name: path.basename(dest).toLowerCase().replace(/[^a-z0-9-]/g, '-'),
   private: true,

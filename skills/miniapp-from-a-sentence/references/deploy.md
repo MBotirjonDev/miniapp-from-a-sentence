@@ -14,8 +14,12 @@
    Run this from your own terminal or browser; do not paste the token into chats or code.
 6. **Test in Telegram** on a phone: open the bot, tap the menu button, place a test order, and check
    that the admin chat receives it.
-7. **Before real customers:** replace the in-memory storage (orders counter, bookings, survey answers)
-   with a database; it resets on every restart.
+7. **Storage.** The ordering template saves to `DATA_DIR/store.json`: put `DATA_DIR` on a persistent
+   disk (a VPS folder, or a volume on Render/Railway/Fly.io; plain container disks are wiped on
+   redeploy) and back the file up daily. Booking and survey still keep data in memory: add a database
+   before real customers.
+8. **Shop commands (ordering):** set the webhook from step 5, then send `/help` in the admin chat.
+   Only that chat can change prices or the menu.
 
 ## Payme and Click (ordering template, optional)
 
