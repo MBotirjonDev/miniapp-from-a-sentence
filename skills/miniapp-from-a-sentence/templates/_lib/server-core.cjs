@@ -49,6 +49,20 @@ function send(res, status, body, headers = {}) {
   res.end(isJson ? JSON.stringify(body) : body);
 }
 
+function readText(req, limit = 16 * 1024) {
+  return new Promise((resolve, reject) => {
+    let size = 0;
+    const chunks = [];
+    req.on('data', (c) => {
+      size += c.length;
+      if (size > limit) { reject(Object.assign(new Error('body too large'), { status: 413 })); req.destroy(); return; }
+      chunks.push(c);
+    });
+    req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+    req.on('error', reject);
+  });
+}
+
 function readJson(req, limit = 16 * 1024) {
   return new Promise((resolve, reject) => {
     let size = 0;
@@ -75,9 +89,11 @@ function escapeHtml(s) {
  * @param {object} opts
  * @param {string} opts.publicDir
  * @param {Record<string, (ctx) => Promise<object>>} opts.api  e.g. { 'GET /api/catalog': fn, 'POST /api/order': fn }
+ * @param {Record<string, (ctx) => Promise<object>>} [opts.hooks]  server-to-server callbacks (Payme, Click) that
+ *   do their own authentication. They get { headers, text, notifyAdmin, escapeHtml } and return the JSON to send.
  * @param {object} [opts.env]
  */
-function createApp({ publicDir, api, env }) {
+function createApp({ publicDir, api, hooks = {}, env }) {
   const cfg = config(env);
   const outbox = []; // messages sent (or that would be sent) to the admin, kept for tests and dev logs
 
@@ -150,6 +166,13 @@ function createApp({ publicDir, api, env }) {
         // Local testing only: a signed initData for a fake user, so the browser exercises the real check.
         const user = { id: 1001, first_name: 'Test', username: 'test_user', language_code: 'en' };
         return send(res, 200, { initData: buildInitData({ user, auth_date: String(Math.floor(Date.now() / 1000)), query_id: 'dev' }, cfg.botToken) });
+      }
+
+      const hook = hooks[`${req.method} ${url.pathname}`];
+      if (hook) {
+        // No initData here: the payment provider calls this URL, and the hook checks its signature or key.
+        const text = await readText(req);
+        return send(res, 200, await hook({ headers: req.headers, text, notifyAdmin, escapeHtml, cfg }));
       }
 
       const route = api[`${req.method} ${url.pathname}`];

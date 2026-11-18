@@ -52,6 +52,8 @@
     BackButton: makeButton('mock-back-button', 'mock-back-button'),
     HapticFeedback: { impactOccurred: function () {}, notificationOccurred: function () {}, selectionChanged: function () {} },
     showAlert: function (m, cb) { window.alert(m); if (cb) cb(); },
+    // Real Telegram opens the link in the in-app browser. The mock records it instead of leaving the page.
+    openLink: function (url) { document.body.dataset.openedLink = url; },
     onEvent: function () {}, offEvent: function () {},
   };
   window.Telegram.WebApp.BackButton.setText('‹ Back');

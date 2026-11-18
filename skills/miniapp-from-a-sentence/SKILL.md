@@ -20,9 +20,9 @@ small Node 18+ server with no dependencies. Three tested templates cover most cl
 Ask only what changes the build:
 - What is sold, booked or asked? (items with prices, services with durations, or questions)
 - Who receives the orders: a person or a group? (becomes `ADMIN_CHAT_ID`)
-- Payments inside Telegram: yes or no? The templates take orders without payment. If yes, say that
-  Telegram Payments need a provider token and a `successful_payment` handler on the server, and add
-  them in a second step.
+- Online payment: Payme, Click, both, or pay on pickup? The `ordering` template has Payme and Click
+  built in (server-side Merchant API handlers, checkout links in the app). They switch on when their
+  keys are in the environment; without keys orders are "pay on pickup".
 
 If the user gives no details, build the closest template with realistic sample data and say so.
 
@@ -71,14 +71,30 @@ accounts for the user.
   runs no shell commands.
 - **Network:** the skill itself makes no network calls. The generated app's server, once the user
   deploys it with their own token, calls one endpoint: `https://api.telegram.org/bot<BOT_TOKEN>/sendMessage`
-  (and `/setWebhook` if they set one up) to deliver orders to the admin chat. In dev mode
+  (and `/setWebhook` if they set one up) to deliver orders to the admin chat. If payments are enabled,
+  the app makes no outgoing payment calls: Payme and Click call the app's `/payments/*` URLs, and the
+  customer opens `checkout.paycom.uz` / `my.click.uz` links in Telegram. In dev mode
   (`npm run dev`) it only listens on `http://localhost:3000` and prints admin messages to the
   terminal instead of sending them.
-- **Secrets:** no token is stored anywhere in this skill. The server reads `BOT_TOKEN`,
-  `ADMIN_CHAT_ID` and `WEBHOOK_SECRET` from `process.env`. Dev mode signs test data with a random
+- **Secrets:** no token or key is stored anywhere in this skill. The server reads `BOT_TOKEN`,
+  `ADMIN_CHAT_ID`, `WEBHOOK_SECRET` and the optional Payme/Click keys from `process.env`. Dev mode signs test data with a random
   key generated at startup, which is never valid for Telegram.
+
+## Payments (ordering template)
+
+Payme (Merchant API) and Click (SHOP-API) are in `_lib/payments.cjs`, wired into `ordering/server.js`:
+- the order total is computed on the server and stored in tiyin (so'm × 100); checkout links carry it
+- Payme calls `POST /payments/payme` (Basic auth with the cashbox key), Click calls
+  `POST /payments/click` (MD5 sign with the secret key); both are checked before anything changes
+- an order becomes `paid` only from these callbacks, never from the client; the admin gets a PAID message
+- the customer taps "I have paid" and the app asks the server for the real status
+
+Keys go in the server environment only (`PAYME_MERCHANT_ID`, `PAYME_KEY`, `PAYME_TEST`,
+`CLICK_SERVICE_ID`, `CLICK_MERCHANT_ID`, `CLICK_SECRET_KEY`). The user gets them from their own
+Payme Business and Click merchant cabinets (a registered business is required); never ask for them in
+chat. Test with Payme's sandbox (`PAYME_TEST=1`) before production. Steps: `references/deploy.md`.
 
 ## Report back
 Tell the user: which template, what you changed, how you tested it (the flow you clicked and the
 admin message you saw), and the deploy steps. Say clearly that storage is in memory and needs a
-database before real customers.
+database before real customers, especially with payments: a restart loses the record of paid orders.

@@ -28,6 +28,18 @@ fs.writeFileSync(path.join(dest, '.env.example'), [
   'WEBAPP_URL=         # https URL where this app is hosted',
   'NODE_ENV=production',
   'PORT=3000',
+  ...(template === 'ordering' ? [
+    '',
+    '# Online payments (optional). Leave empty to take orders as "pay on pickup".',
+    '# Payme Business cabinet -> cashbox. Endpoint URL to give Payme: <WEBAPP_URL>/payments/payme',
+    'PAYME_MERCHANT_ID=  # public cashbox id',
+    'PAYME_KEY=          # cashbox key (secret; use the TEST key with PAYME_TEST=1)',
+    'PAYME_TEST=1        # 1 = test.paycom.uz sandbox, remove for production',
+    '# Click merchant cabinet. Prepare and Complete URL to give Click: <WEBAPP_URL>/payments/click',
+    'CLICK_SERVICE_ID=',
+    'CLICK_MERCHANT_ID=',
+    'CLICK_SECRET_KEY=   # secret',
+  ] : []),
   '',
 ].join('\n'));
 fs.writeFileSync(path.join(dest, '.gitignore'), '.env\nnode_modules/\n');

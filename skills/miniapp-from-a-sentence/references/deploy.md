@@ -16,3 +16,25 @@
    that the admin chat receives it.
 7. **Before real customers:** replace the in-memory storage (orders counter, bookings, survey answers)
    with a database; it resets on every restart.
+
+## Payme and Click (ordering template, optional)
+
+The shop owner needs a registered business (LLC or sole proprietor) and merchant contracts with
+Payme and/or Click. The skill never asks for or stores these keys; the owner puts them in the host's
+environment.
+
+**Payme**
+1. In the Payme Business cabinet, create a cashbox. Set the endpoint URL to
+   `<WEBAPP_URL>/payments/payme` and the account field to `order_id`.
+2. Set `PAYME_MERCHANT_ID` (cashbox id) and `PAYME_KEY` (the **test** key first) and `PAYME_TEST=1`.
+3. Run Payme's sandbox checks (test.paycom.uz): create, perform, cancel, the timeout case and wrong
+   amount / unknown order. All must pass before Payme activates the cashbox.
+4. Switch to the production key and remove `PAYME_TEST`.
+
+**Click**
+1. In the Click merchant cabinet, set both the Prepare and Complete URLs to `<WEBAPP_URL>/payments/click`.
+2. Set `CLICK_SERVICE_ID`, `CLICK_MERCHANT_ID` and `CLICK_SECRET_KEY`.
+3. Make a small real payment and check that the admin chat gets "Order #N PAID via Click".
+
+**Before real payments:** move orders and transactions to a database. A restart of the in-memory
+version forgets which orders were paid, and Payme/Click will retry against orders that no longer exist.

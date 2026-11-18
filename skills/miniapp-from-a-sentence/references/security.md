@@ -18,8 +18,10 @@ For a deeper audit, run the telegram-miniapp-audit skill (github.com/MBotirjonDe
 6. **Escape user text** before putting it into HTML messages (`escapeHtml`) and render user text in the
    page with `textContent`, never `innerHTML`.
 7. **Limit input.** Body size limit (16 KB), max quantities, max text lengths, phone format checks.
-8. **Payments**, if added: unlock on the `successful_payment` update on the server, never on the
-   client's `openInvoice` callback.
+8. **Payments**: an order is paid only when Payme's `PerformTransaction` or Click's Complete
+   reaches the server with a valid key or signature, never because the client says so. Compare the
+   amount exactly in integer tiyin, refuse a second transaction for the same order, and keep the
+   Payme and Click keys in the server environment (checkout links need only public ids).
 9. **Admins by numeric id** (`ADMIN_CHAT_ID`), never by username: usernames can be changed and taken.
 10. **Production refuses to start without `BOT_TOKEN`,** and the dev mock (`/dev/init-data`) exists
     only when no real token is set.

@@ -28,6 +28,8 @@ h1 { font-size: 22px; line-height: 1.2; margin: 4px 4px 4px; letter-spacing: -0.
 .btn { appearance: none; border: 0; border-radius: 10px; min-height: 44px; min-width: 44px; padding: 0 14px; font: inherit; font-weight: 600; background: var(--surface); color: var(--link); cursor: pointer; }
 .btn.primary { background: var(--button); color: var(--button-text); }
 .btn:disabled { opacity: 0.4; cursor: default; }
+.pay-buttons { display: flex; flex-direction: column; gap: 10px; margin: 16px 0 8px; }
+.btn.pay { background: var(--button); color: var(--button-text); min-height: 48px; width: 100%; }
 .btn:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
 .stepper { display: flex; align-items: center; gap: 4px; }
 .stepper output { min-width: 24px; text-align: center; font-variant-numeric: tabular-nums; }

@@ -71,12 +71,50 @@
 
   function renderDone(r) {
     tma.backButton(null);
+    if (!r.pay) {
+      app.replaceChildren(el('div', { class: 'done' }, [
+        el('div', { class: 'big', 'aria-hidden': 'true', text: '✓' }),
+        el('h2', { text: 'Order #' + r.orderId + ' placed' }),
+        el('p', { text: 'Total ' + r.totalText + '. Pay when you pick it up.' }),
+      ]));
+      tma.mainButton('Back to menu', renderMenu);
+      return;
+    }
+    renderPay(r);
+  }
+
+  // Online payment: open Payme or Click, then come back and check the status on the server.
+  function renderPay(r) {
+    var status = el('p', { class: 'meta', role: 'status', text: 'Choose how to pay. You will come back here after paying.' });
+    var buttons = [];
+    if (r.pay.payme) buttons.push(el('button', { class: 'btn pay', on: { click: function () { open(r.pay.payme); } } }, ['Pay with Payme']));
+    if (r.pay.click) buttons.push(el('button', { class: 'btn pay', on: { click: function () { open(r.pay.click); } } }, ['Pay with Click']));
+    // url comes from our own server (/api/order), built from public Payme/Click ids, never from user input.
+    function open(url) { tma.tg.openLink(url); status.textContent = 'After paying, tap "I have paid".'; }
     app.replaceChildren(el('div', { class: 'done' }, [
-      el('div', { class: 'big', 'aria-hidden': 'true', text: '✓' }),
-      el('h2', { text: 'Order #' + r.orderId + ' placed' }),
-      el('p', { text: 'Total ' + r.totalText + '. The shop has received your order.' }),
+      el('h2', { text: 'Order #' + r.orderId }),
+      el('p', { text: 'Total ' + r.totalText }),
+      el('div', { class: 'pay-buttons' }, buttons),
+      status,
     ]));
-    tma.mainButton('Back to menu', renderMenu);
+    tma.mainButton('I have paid', function () {
+      // Display only: the server sets "paid" from Payme/Click callbacks; nothing is unlocked here.
+      tma.api('/api/order-status?id=' + encodeURIComponent(r.orderId)).then(function (s) {
+        if (s.status === 'paid') {
+          tma.haptic('success');
+          app.replaceChildren(el('div', { class: 'done' }, [
+            el('div', { class: 'big', 'aria-hidden': 'true', text: '✓' }),
+            el('h2', { text: 'Order #' + s.orderId + ' paid' }),
+            el('p', { text: 'Paid via ' + s.paidVia + '. The shop has your order.' }),
+          ]));
+          tma.mainButton('Back to menu', renderMenu);
+        } else if (s.status === 'cancelled') {
+          status.textContent = 'The payment was cancelled. You can try again.';
+        } else {
+          status.textContent = 'We have not received the payment yet. It can take a minute.';
+        }
+      }).catch(function (e) { status.textContent = e.message; });
+    });
   }
 
   tma.api('/api/catalog').then(function (c) { catalog = c; renderMenu(); })
